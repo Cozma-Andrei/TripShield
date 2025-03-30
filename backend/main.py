@@ -47,9 +47,11 @@ if 'Longitude' not in df.columns:
 
 # --- Coordinate caching ---
 
-if r.dbsize()==0:
+if r.dbsize() == 0:
     print("Loading db")
-    Thread(target=setupSentiment,args=("Crime",df["Country"],r)).start()
+    Thread(target=setupSentiment, args=("Crime", df["Country"], r)).start()
+
+
 def get_coordinates(city, country):
     cache_key = f"coords:{city.lower()}:{country.lower()}"
     cached = r.get(cache_key)
@@ -208,6 +210,7 @@ def all_cities_by_country():
     enriched = []
     for _, row in result.iterrows():
         lat, lon = get_coordinates(row['CityName'], row['Country'])
+        city_name_clean = row['CityName'].split(',')[0].replace(' ', '-')
         enriched.append({
             "Original Input": country,
             "Matched Country": row['Country'],
@@ -215,7 +218,8 @@ def all_cities_by_country():
             "Crime Index": row['Crime Index'],
             "Safety Index": row['Safety Index'],
             "Latitude": lat,
-            "Longitude": lon
+            "Longitude": lon,
+            "Visit Link": f"https://www.visitacity.com/en/{city_name_clean}"
         })
     return jsonify({"country": result.iloc[0]['Country'], "cities": enriched})
 
@@ -243,15 +247,16 @@ def average_by_all_countries():
 
     return jsonify(result)
 
+
 @app.route("/news_sentiment")
 def get_news_sentiment():
-    loc=request.args.get("location")
+    loc = request.args.get("location")
     if loc == None:
-            return jsonify({"error": "Location not specified"}), 404
-    loc=loc.replace(" ","_")
-    sentiment=r.hgetall(loc)
+        return jsonify({"error": "Location not specified"}), 404
+    loc = loc.replace(" ", "_")
+    sentiment = r.hgetall(loc)
     print(sentiment)
-    if sentiment!=None:
+    if sentiment != None:
         string_dict = {k.decode(): v.decode() for k, v in sentiment.items()}
         print(string_dict)
         return jsonify(string_dict)

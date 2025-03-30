@@ -12,13 +12,18 @@ import {
 import Legend from './Legend';
 import { Button } from '../components/ui/button';
 import CustomChart from './CustomChart';
+import { Badge } from '../components/ui/badge';
+import CustomComboBox from './CustomComboBox';
 
 const Map = () => {
 	const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
 	const [countryName, setCountryName] = React.useState('');
 	const [countryData, setCountryData] = React.useState([]);
+	const [selectedCountryData, setSelectedCountryData] = React.useState(null);
 	const [countryColors, setCountryColors] = React.useState({});
 	const [sentimentData, setSentimentData] = React.useState(null);
+	const [cityData, setCityData] = React.useState(null);
+	const [safe, isSafe] = React.useState(false);
 
 	// Function to convert crime rate (1-100) to a color (green → yellow → red)
 	const getCrimeColor = (value: number) => {
@@ -108,7 +113,10 @@ const Map = () => {
 			path.addEventListener('click', function (event) {
 				event.stopImmediatePropagation();
 				setCountryName(country);
-				setCountryData({ crimeRate: countryColors[country] });
+				// get crime rate average for the country
+				const crimeRate = countryColors[country];
+				// setCountryData({ crimeRate: countryColors[country] });
+				// console.log(selectedCountryData);
 				setIsDrawerOpen(true);
 			});
 
@@ -120,6 +128,41 @@ const Map = () => {
 		});
 	}, [countryColors]); // Run this effect when `countryColors` updates
 
+	const fetchCountrySafety = async (country: string) => {
+		const url = import.meta.env.VITE_API_URL + '/average_by_country?country=' + country;
+		try {
+			const response = await fetch(url);
+			const data = await response.json();
+			if (!response.ok) {
+				throw new Error('Network response was not ok');
+			}
+			setSelectedCountryData(data);
+		} catch (error) {
+			console.error('Error fetching data:', error);
+		}
+	};
+
+	const fetchAllCitiesCountry = async (country: string) => {
+		const url = import.meta.env.VITE_API_URL + '/all_cities_by_country?country=' + country;
+		try {
+			const response = await fetch(url);
+			const data = await response.json();
+			if (!response.ok) {
+				throw new Error('Network response was not ok');
+			}
+			setCityData(data);
+		} catch (error) {
+			console.error('Error fetching data:', error);
+		}
+	};
+
+	useEffect(() => {
+		if (countryName) {
+			fetchCountrySafety(countryName);
+			fetchAllCitiesCountry(countryName);
+		}
+	}, [countryName]);
+
 	return (
 		<div className="h-screen w-screen flex items-center justify-center bg-gray-100">
 			{/* Drawer for showing country information */}
@@ -127,7 +170,20 @@ const Map = () => {
 				<DrawerContent>
 					<div className="mx-auto w-full">
 						<DrawerHeader>
-							<DrawerTitle>{countryName}</DrawerTitle>
+							<DrawerTitle className="flex items-center justify-between">
+								{countryName}
+								<CustomComboBox frameworks={cityData?.cities} />
+								{selectedCountryData ? (
+									<Badge
+										className="text-sm"
+										variant={selectedCountryData.average_crime_index < 50 ? 'default' : 'destructive'}
+									>
+										{selectedCountryData.average_crime_index < 50 ? 'Safe' : 'Not Safe'} to visit
+									</Badge>
+								) : (
+									<span>No data available for {countryName}</span>
+								)}
+							</DrawerTitle>
 							<DrawerDescription>
 								This is a map of the world. Click on any country to get more information.
 							</DrawerDescription>
