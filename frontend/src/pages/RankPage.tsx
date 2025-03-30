@@ -23,7 +23,7 @@ export default function RankPage(){
 	}, []);
 
     let elementsCrime: JSX.Element[]=[];
-    countryData.sort((a,b)=>{return a.average_crime_index-b.average_crime_index}).slice(0,10).forEach((ctr)=>{
+    countryData.sort((a,b)=>{return b.average_crime_index-a.average_crime_index}).slice(0,10).forEach((ctr)=>{
         elementsCrime.push(<>
             <div className="flex-col items-center">
                 <b className="text-sm font-medium text-black dark:text-blue-500 hover:underline">{ctr.country}</b>
