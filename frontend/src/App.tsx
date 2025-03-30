@@ -20,7 +20,7 @@ import { cn } from "./lib/utils";
 
 import LandingPage from './pages/LandingPage';
 import MapPage from './pages/MapPage';
-
+import RankPage from './pages/RankPage'
 function App() {
 	return (
 		<Router>
@@ -42,6 +42,11 @@ function App() {
 								Map
 							</Link>
 						</NavigationMenuItem>
+						<NavigationMenuItem>
+							<Link to="/rank" className={cn("px-4 py-2 text-green-800 hover:text-green-900 font-medium")}>
+								Ranking Countries
+							</Link>
+						</NavigationMenuItem>
 					</NavigationMenuList>
 
 					<NavigationMenuIndicator />
@@ -53,6 +58,7 @@ function App() {
 				<Routes>
 					<Route path="/" element={<LandingPage />} />
 					<Route path="/map" element={<MapPage />} />
+					<Route path='/rank' element={<RankPage />}/>
 				</Routes>
 			</div>
 		</Router>
