@@ -1,12 +1,12 @@
-import './App.css'
+import './App.css';
+import Map from './custom-components/Map';
 
 function App() {
-
-  return (
-    <>
-      <h1>Test</h1>
-    </>
-  )
+	return (
+		<>
+			<Map />
+		</>
+	);
 }
 
-export default App
+export default App;
