@@ -9,13 +9,16 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from '../components/ui/drawer';
+import Legend from './Legend';
 import { Button } from '../components/ui/button';
+import CustomChart from './CustomChart';
 
 const Map = () => {
 	const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
 	const [countryName, setCountryName] = React.useState('');
 	const [countryData, setCountryData] = React.useState([]);
 	const [countryColors, setCountryColors] = React.useState({});
+	const [sentimentData, setSentimentData] = React.useState(null);
 
 	// Function to convert crime rate (1-100) to a color (green → yellow → red)
 	const getCrimeColor = (value: number) => {
@@ -40,6 +43,28 @@ const Map = () => {
 			console.error('Error fetching data:', error);
 		}
 	};
+
+	const fetchSentimentData = async (country: string) => {
+		// Replace with actual API call
+		const url = import.meta.env.VITE_API_URL + '/news_sentiment?location=' + country;
+		try {
+			const response = await fetch(url);
+			const data = await response.json();
+			if (!response.ok) {
+				throw new Error('Network response was not ok');
+			}
+			setSentimentData(data);
+		} catch (error) {
+			console.error('Error fetching data:', error);
+		}
+	};
+
+	// Fetch sentiment data when the country name changes
+	useEffect(() => {
+		if (countryName) {
+			fetchSentimentData(countryName);
+		}
+	}, [countryName]);
 
 	useEffect(() => {
 		if (Array.isArray(countryData)) {
@@ -98,18 +123,18 @@ const Map = () => {
 	return (
 		<div className="h-screen w-screen flex items-center justify-center bg-gray-100">
 			{/* Drawer for showing country information */}
-			<Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+			<Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen} className="p-4">
 				<DrawerContent>
-					<div className="mx-auto w-full max-w-sm">
+					<div className="mx-auto w-full">
 						<DrawerHeader>
 							<DrawerTitle>{countryName}</DrawerTitle>
 							<DrawerDescription>
 								This is a map of the world. Click on any country to get more information.
 							</DrawerDescription>
 						</DrawerHeader>
-						<div className="p-4 pb-0">
+						<div className="pb-0">
 							{/* Display fetched data */}
-							{countryData ? <pre>{JSON.stringify(countryData, null, 2)}</pre> : <p>Loading data...</p>}
+							{countryData ? <CustomChart sentimentData={sentimentData}></CustomChart> : <p>Loading data...</p>}
 						</div>
 						<DrawerFooter>
 							<DrawerClose asChild>
@@ -1389,6 +1414,7 @@ const Map = () => {
 					id="ZW"
 				/>
 			</svg>
+			<Legend />
 		</div>
 	);
 };
