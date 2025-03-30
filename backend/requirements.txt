@@ -9,3 +9,4 @@ geopy
 eventregistry
 fuzzywuzzy
 python-Levenshtein
+flask-cors

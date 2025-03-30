@@ -8,8 +8,10 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from opencage.geocoder import OpenCageGeocode
 from fuzzywuzzy import process
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 load_dotenv()
 r = redisSetup.setup()
 geocoder = OpenCageGeocode(os.getenv("OPENCAGE_API_KEY"))
@@ -20,6 +22,8 @@ csv_file = [f for f in os.listdir(dataset_path) if f.endswith(".csv")][0]
 df = pd.read_csv(os.path.join(dataset_path, csv_file))
 
 # --- Extract City and Country ---
+
+
 def extract_city_country(full_city_str):
     parts = [part.strip() for part in full_city_str.split(',')]
     if len(parts) >= 2:
@@ -28,6 +32,7 @@ def extract_city_country(full_city_str):
         return pd.Series([city, country])
     else:
         return pd.Series([full_city_str.strip(), ""])
+
 
 df[['CityName', 'Country']] = df['City'].apply(extract_city_country)
 df['CityName_lower'] = df['CityName'].str.lower()
@@ -40,6 +45,8 @@ if 'Longitude' not in df.columns:
     df['Longitude'] = None
 
 # --- Coordinate caching ---
+
+
 def get_coordinates(city, country):
     cache_key = f"coords:{city.lower()}:{country.lower()}"
     cached = r.get(cache_key)
@@ -64,10 +71,13 @@ def get_coordinates(city, country):
     return None, None
 
 # --- Fuzzy Matching ---
+
+
 def fuzzy_match_city(input_city):
     choices = df['CityName_lower'].unique()
     match, score = process.extractOne(input_city.lower(), choices)
     return match if score >= 70 else None
+
 
 def fuzzy_match_country(input_country):
     choices = df['Country_lower'].unique()
@@ -75,9 +85,12 @@ def fuzzy_match_country(input_country):
     return match if score >= 70 else None
 
 # --- Routes ---
+
+
 @app.route("/")
 def home():
     return "Hello, Flask!"
+
 
 @app.route("/crime_by_city")
 def crime_by_city():
@@ -136,6 +149,7 @@ def crime_by_city():
         "city_count": len(result)
     })
 
+
 @app.route("/crime_by_country")
 def crime_by_country():
     country = request.args.get("country", "").strip().lower()
@@ -158,6 +172,7 @@ def crime_by_country():
         })
     return jsonify(enriched)
 
+
 @app.route("/average_by_country")
 def average_by_country():
     country = request.args.get("country", "").strip().lower()
@@ -175,6 +190,7 @@ def average_by_country():
         "average_safety_index": round(avg_safety, 2),
         "city_count": len(result)
     })
+
 
 @app.route("/all_cities_by_country")
 def all_cities_by_country():
@@ -198,6 +214,7 @@ def all_cities_by_country():
         })
     return jsonify({"country": result.iloc[0]['Country'], "cities": enriched})
 
+
 @app.route("/average_by_all_countries")
 def average_by_all_countries():
     grouped = df.groupby("Country_lower").agg({
@@ -207,7 +224,8 @@ def average_by_all_countries():
     }).reset_index()
 
     # Match original country name for display
-    country_map = df.drop_duplicates(subset=["Country_lower"])[["Country_lower", "Country"]].set_index("Country_lower")["Country"].to_dict()
+    country_map = df.drop_duplicates(subset=["Country_lower"])[
+        ["Country_lower", "Country"]].set_index("Country_lower")["Country"].to_dict()
 
     result = []
     for _, row in grouped.iterrows():
@@ -219,6 +237,7 @@ def average_by_all_countries():
         })
 
     return jsonify(result)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
