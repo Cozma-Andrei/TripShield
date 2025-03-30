@@ -106,13 +106,15 @@ def crime_by_city():
         enriched = []
         for _, row in result.iterrows():
             lat, lon = get_coordinates(row['CityName'], row['Country'])
+            city_name_clean = row['CityName'].split(',')[0].replace(' ', '-')
             enriched.append({
                 "Original Input": city,
                 "Matched City": row['City'],
                 "Crime Index": row['Crime Index'],
                 "Safety Index": row['Safety Index'],
                 "Latitude": lat,
-                "Longitude": lon
+                "Longitude": lon,
+                "Visit Link": f"https://www.visitacity.com/en/{city_name_clean}"
             })
         return jsonify(enriched)
 
