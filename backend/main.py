@@ -163,7 +163,7 @@ def average_by_country():
     country = request.args.get("country", "").strip().lower()
     matched_country = fuzzy_match_country(country)
     if not matched_country:
-        return jsonify({"error": "The country was not found, even after correction."}), 404
+        return jsonify([])
 
     result = df[df['Country_lower'] == matched_country]
     avg_crime = result['Crime Index'].mean()
@@ -181,7 +181,7 @@ def all_cities_by_country():
     country = request.args.get("country", "").strip().lower()
     matched_country = fuzzy_match_country(country)
     if not matched_country:
-        return jsonify({"error": "The country was not found, even after correction."}), 404
+        return jsonify([])
 
     result = df[df['Country_lower'] == matched_country]
     enriched = []
