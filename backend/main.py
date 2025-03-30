@@ -1,7 +1,8 @@
 from flask import Flask, request, jsonify
 import os
 import pandas as pd
-import asyncio
+from sentiment.news import setupSentiment
+from threading import Thread
 import redisSetup
 import sentiment.news
 from datetime import datetime, timedelta
@@ -10,7 +11,7 @@ from opencage.geocoder import OpenCageGeocode
 
 app = Flask(__name__)
 load_dotenv()
-r = redisSetup.setup()
+r = redisSetup.redisSetup()
 geocoder = OpenCageGeocode(os.getenv("OPENCAGE_API_KEY"))
 
 dataset_path = "."
@@ -29,7 +30,9 @@ def extract_city_country(full_city_str):
 df[['CityName', 'Country']] = df['City'].apply(extract_city_country)
 df['CityName_lower'] = df['CityName'].str.lower()
 df['Country_lower'] = df['Country'].str.lower()
-
+if r.dbsize()==0:
+    print("Loading db")
+    Thread(target=setupSentiment,args=("Crime",df["Country"],r)).start()
 def get_coordinates(city, country):
     cache_key = f"coords:{city.lower()}:{country.lower()}"
     cached = r.get(cache_key)
@@ -129,6 +132,21 @@ def all_cities_by_country():
             "Longitude": lon
         })
     return jsonify({"country": country.title(), "cities": enriched})
+@app.route("/news_sentiment")
+def get_news_sentiment():
+    loc=request.args.get("location")
+    if loc == None:
+            return jsonify({"error": "Location not specified"}), 404
+    loc=loc.replace(" ","_")
+    sentiment=r.hgetall(loc)
+    print(sentiment)
+    if sentiment!=None:
+        string_dict = {k.decode(): v.decode() for k, v in sentiment.items()}
+        print(string_dict)
+        return jsonify(string_dict)
+    else:
+        return jsonify({"error": "The location was not set."}), 404
+
 
 if __name__ == "__main__":
     app.run(debug=True)
