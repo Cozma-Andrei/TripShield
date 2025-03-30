@@ -6,3 +6,4 @@ flask
 pandas
 opencage
 geopy
+eventregistry
