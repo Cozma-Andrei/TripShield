@@ -1,0 +1,9 @@
+dotenv
+requests
+redis
+kagglehub
+flask
+pandas
+opencage
+geopy
+eventregistry
