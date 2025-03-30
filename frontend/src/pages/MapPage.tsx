@@ -2,8 +2,9 @@ import Map from "../custom-components/Map";
 
 function MapPage() {
 	return (
-		<div className="w-full h-screen overflow-hidden flex flex-col">
-			<div className="flex-1 overflow-hidden">
+		<div className="w-full h-screen flex items-center justify-center">
+			{/* 80% height and width of screen, centered */}
+			<div className="w-full h-full overflow-hidden rounded-xl shadow border">
 				<Map />
 			</div>
 		</div>

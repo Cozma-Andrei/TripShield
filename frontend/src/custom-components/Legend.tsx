@@ -10,8 +10,8 @@ const Legend = () => {
 			className="legend-container"
 			style={{
 				position: 'absolute',
-				top: '10px',
-				left: '10px',
+				top: '80px',
+				left: '20px',
 				backgroundColor: 'white',
 				padding: '10px',
 				borderRadius: '8px',
