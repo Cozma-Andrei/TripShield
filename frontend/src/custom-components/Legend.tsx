@@ -19,7 +19,13 @@ const Legend = () => {
 		>
 			<h3 className="text-lg font-semibold">Crime Rate Legend</h3>
 			<div className="legend" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-				<div className="legend-item" style={{ width: '40px', height: '10px', backgroundColor: getCrimeColor(0) }}></div>
+				<div className="legend-item" style={{ width: '40px', height: '10px', backgroundColor: 'black' }}></div>
+				<span className="ml-2">NaN</span>
+
+				<div
+					className="legend-item ml-4"
+					style={{ width: '40px', height: '10px', backgroundColor: getCrimeColor(0) }}
+				></div>
 				<span className="ml-2">Low Crime</span>
 
 				<div
